@@ -1,0 +1,37 @@
+sequenceDiagram
+    participant Client as Cliente HTTP
+    participant Node as Nodo Receptor
+    participant DB as files_db.json
+    participant N1 as Nodo 1
+    participant N2 as Nodo 2
+    participant N3 as Nodo 3
+    
+    Client->>Node: GET /download/{file_id}
+    activate Node
+    
+    Node->>DB: Busca metadados do arquivo
+    DB-->>Node: {nome, tamanho, fragmentos[]}
+    
+    Note over Node: Agrupa fragmentos<br/>por id_fragmento
+    
+    loop Para cada fragmento (em ordem)
+        Note over Node: Tenta buscar de<br/>qualquer réplica
+        
+        alt Fragmento no Nodo 1
+            Node->>N1: GET /get_fragment/file_X_frag_0
+            N1-->>Node: Dados do fragmento
+        else Fragmento no Nodo 2 (fallback)
+            Node->>N2: GET /get_fragment/file_X_frag_0
+            N2-->>Node: Dados do fragmento
+        else Fragmento no Nodo 3 (fallback)
+            Node->>N3: GET /get_fragment/file_X_frag_0
+            N3-->>Node: Dados do fragmento
+        end
+        
+        Note over Node: Concatena fragmento<br/>ao arquivo final
+    end
+    
+    Note over Node: Reconstrói arquivo<br/>completo
+    
+    Node-->>Client: 200 OK<br/>Arquivo completo
+    deactivate Node

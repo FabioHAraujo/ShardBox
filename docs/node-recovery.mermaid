@@ -1,0 +1,41 @@
+stateDiagram-v2
+    [*] --> Inicializando: Nodo inicia
+    
+    Inicializando --> AguardandoSync: Servidor TCP pronto
+    AguardandoSync --> Ativo: Aguarda 10s<br/>Servidor HTTP pronto
+    
+    note right of AguardandoSync
+        Período de graça de 10s
+        para sincronização inicial
+    end note
+    
+    Ativo --> Monitorando: Inicia heartbeat
+    
+    Monitorando --> Monitorando: Heartbeat OK<br/>Todos vivos
+    Monitorando --> DetectandoFalha: Sem resposta
+    
+    DetectandoFalha --> Monitorando: Timeout < 30s<br/>Aguarda
+    DetectandoFalha --> ConfirmandoMorte: Timeout > 30s
+    
+    ConfirmandoMorte --> AguardandoCooldown: Em período de<br/>inicialização (<15s)
+    ConfirmandoMorte --> AguardandoCooldown: Cooldown ativo<br/>(última tentativa <60s)
+    ConfirmandoMorte --> Recuperando: Condições OK<br/>para recuperação
+    
+    note right of ConfirmandoMorte
+        Proteções contra
+        recuperação prematura
+    end note
+    
+    AguardandoCooldown --> Monitorando: Volta ao monitoramento
+    
+    Recuperando --> IniciaProcesso: subprocess.Popen<br/>python node.py N
+    IniciaProcesso --> RegistraTentativa: Armazena timestamp
+    RegistraTentativa --> Monitorando: Continua monitorando
+    
+    IniciaProcesso --> [*]: Novo processo<br/>do nodo
+    
+    note left of Recuperando
+        Inicia novo processo
+        em background, desacoplado
+        do processo pai
+    end note

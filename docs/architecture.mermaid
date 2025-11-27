@@ -1,0 +1,51 @@
+graph TB
+    subgraph "Sistema Distribuído - 8 Nodos"
+        N1[Nodo 1<br/>TCP: 5001<br/>HTTP: 8001]
+        N2[Nodo 2<br/>TCP: 5002<br/>HTTP: 8002]
+        N3[Nodo 3<br/>TCP: 5003<br/>HTTP: 8003]
+        N4[Nodo 4<br/>TCP: 5004<br/>HTTP: 8004]
+        N5[Nodo 5<br/>TCP: 5005<br/>HTTP: 8005]
+        N6[Nodo 6<br/>TCP: 5006<br/>HTTP: 8006]
+        N7[Nodo 7<br/>TCP: 5007<br/>HTTP: 8007]
+        N8[Nodo 8<br/>TCP: 5008<br/>HTTP: 8008]
+    end
+    
+    subgraph "Componentes de Cada Nodo"
+        TCP[Servidor TCP<br/>Heartbeat]
+        HTTP[Servidor HTTP<br/>Upload/Download]
+        STORAGE[Armazenamento Local<br/>files_nodo_N]
+        MONITOR[Monitor de Heartbeat<br/>Detecção de Falhas]
+    end
+    
+    subgraph "Banco de Dados Compartilhado"
+        DB[(files_db.json<br/>Metadados de Arquivos<br/>Localização de Fragmentos<br/>Uso de Armazenamento)]
+    end
+    
+    CLIENT[Cliente HTTP]
+    
+    CLIENT -->|Upload/Download| HTTP
+    HTTP -->|Lê/Escreve| DB
+    HTTP -->|Armazena Fragmentos| STORAGE
+    TCP <-->|Heartbeat| MONITOR
+    MONITOR -->|Detecta Falhas| MONITOR
+    MONITOR -->|Recupera Nodos| N1
+    
+    N1 -.Heartbeat.-> N2
+    N2 -.Heartbeat.-> N3
+    N3 -.Heartbeat.-> N4
+    N4 -.Heartbeat.-> N5
+    N5 -.Heartbeat.-> N6
+    N6 -.Heartbeat.-> N7
+    N7 -.Heartbeat.-> N8
+    N8 -.Heartbeat.-> N1
+    
+    style N1 fill:#4CAF50
+    style N2 fill:#4CAF50
+    style N3 fill:#4CAF50
+    style N4 fill:#4CAF50
+    style N5 fill:#4CAF50
+    style N6 fill:#4CAF50
+    style N7 fill:#4CAF50
+    style N8 fill:#4CAF50
+    style DB fill:#2196F3
+    style CLIENT fill:#FF9800

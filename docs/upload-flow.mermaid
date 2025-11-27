@@ -1,0 +1,45 @@
+sequenceDiagram
+    participant Client as Cliente HTTP
+    participant Node as Nodo Receptor
+    participant DB as files_db.json
+    participant N1 as Nodo 1
+    participant N2 as Nodo 2
+    participant N3 as Nodo 3
+    participant N4 as Nodo 4
+    
+    Client->>Node: POST /upload (arquivo)
+    activate Node
+    
+    Note over Node: Gera ID único
+    Node->>DB: Incrementa ultimo_id
+    DB-->>Node: ID = N
+    
+    Note over Node: Fragmenta arquivo<br/>baseado no tamanho
+    
+    alt Arquivo ≤ 100 bytes
+        Note over Node: 1 fragmento + 2 réplicas
+    else Arquivo ≤ 1KB
+        Note over Node: 2 fragmentos + 2 réplicas cada
+    else Arquivo > 1KB
+        Note over Node: 4 fragmentos + 4 réplicas cada
+    end
+    
+    Note over Node: Seleciona nodos com<br/>menor carga
+    Node->>DB: Consulta armazenamento_nodo
+    DB-->>Node: Ranking de nodos
+    
+    par Distribuição de Fragmentos
+        Node->>N1: POST /store_fragment (frag_0)
+        N1-->>Node: 200 OK
+        Node->>N2: POST /store_fragment (frag_0)
+        N2-->>Node: 200 OK
+        Node->>N3: POST /store_fragment (frag_1)
+        N3-->>Node: 200 OK
+        Node->>N4: POST /store_fragment (frag_1)
+        N4-->>Node: 200 OK
+    end
+    
+    Node->>DB: Atualiza metadados<br/>+ localizações<br/>+ armazenamento
+    
+    Node-->>Client: 200 OK<br/>{id, filename, size, fragments, locations}
+    deactivate Node

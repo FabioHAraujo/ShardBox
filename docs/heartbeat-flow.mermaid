@@ -1,0 +1,40 @@
+sequenceDiagram
+    participant N1 as Nodo 1
+    participant N2 as Nodo 2
+    participant N3 as Nodo 3
+    participant N4 as Nodo 4 (Offline)
+    
+    Note over N1,N4: A cada 5 segundos (INTERVALO_HEARTBEAT)
+    
+    loop Ciclo de Heartbeat
+        N1->>N2: TCP: {type: heartbeat, node_id: 1}
+        N2-->>N1: {type: heartbeat_ack, node_id: 2}
+        Note over N1: ✓ Nodo 2 vivo<br/>Atualiza timestamp
+        
+        N1->>N3: TCP: {type: heartbeat, node_id: 1}
+        N3-->>N1: {type: heartbeat_ack, node_id: 3}
+        Note over N1: ✓ Nodo 3 vivo<br/>Atualiza timestamp
+        
+        N1->>N4: TCP: {type: heartbeat, node_id: 1}
+        Note over N4: Nodo offline<br/>Sem resposta
+        Note over N1: ✗ Nodo 4 não respondeu
+        
+        alt Timeout > 30 segundos
+            Note over N1: Nodo 4 considerado MORTO
+            
+            alt Não está em período de inicialização (>15s)
+                alt Não tentou recuperar recentemente (>60s)
+                    Note over N1: Inicia processo de recuperação
+                    N1->>N4: subprocess.Popen(python node.py 4)
+                    Note over N4: Novo processo iniciado
+                    N4-->>N1: Nodo reiniciado
+                else Cooldown ativo
+                    Note over N1: Aguarda cooldown
+                end
+            else Período de inicialização
+                Note over N1: Aguarda estabilização
+            end
+        else Timeout < 30 segundos
+            Note over N1: Aguarda próximo ciclo
+        end
+    end

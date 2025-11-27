@@ -1,0 +1,40 @@
+graph LR
+    subgraph "Estado Atual do Sistema"
+        DB[(files_db.json<br/>armazenamento_nodo)]
+    end
+    
+    subgraph "Armazenamento por Nodo (bytes)"
+        N1["Nodo 1: 2048 KB"]
+        N2["Nodo 2: 1024 KB"]
+        N3["Nodo 3: 512 KB"]
+        N4["Nodo 4: 3072 KB"]
+        N5["Nodo 5: 256 KB"]
+        N6["Nodo 6: 768 KB"]
+        N7["Nodo 7: 1536 KB"]
+        N8["Nodo 8: 4096 KB"]
+    end
+    
+    DB --> SORT[Ordenar nodos<br/>por carga]
+    
+    SORT --> RANKING["Ranking:<br/>1. Nodo 5 (256 KB)<br/>2. Nodo 3 (512 KB)<br/>3. Nodo 6 (768 KB)<br/>4. Nodo 2 (1024 KB)<br/>5. Nodo 7 (1536 KB)<br/>6. Nodo 1 (2048 KB)<br/>7. Nodo 4 (3072 KB)<br/>8. Nodo 8 (4096 KB)"]
+    
+    RANKING --> SELECT{Quantas<br/>réplicas?}
+    
+    SELECT -->|2 réplicas| PICK2["Seleciona:<br/>Nodo 5<br/>Nodo 3"]
+    SELECT -->|4 réplicas| PICK4["Seleciona:<br/>Nodo 5<br/>Nodo 3<br/>Nodo 6<br/>Nodo 2"]
+    
+    PICK2 --> DISTRIBUTE[Distribui fragmento<br/>para nodos selecionados]
+    PICK4 --> DISTRIBUTE
+    
+    DISTRIBUTE --> UPDATE_DB[Atualiza<br/>armazenamento_nodo<br/>em files_db.json]
+    
+    UPDATE_DB --> NEXT[Próximo fragmento<br/>usa ranking atualizado]
+    
+    style N5 fill:#90EE90
+    style N3 fill:#98FB98
+    style N6 fill:#ADFF2F
+    style N2 fill:#FFFF99
+    style N8 fill:#FF6347
+    style N4 fill:#FF7F50
+    style RANKING fill:#87CEEB
+    style SELECT fill:#DDA0DD
