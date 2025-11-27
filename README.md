@@ -538,7 +538,14 @@ Recuperação de nodos usa `subprocess.Popen` com `start_new_session=True` para 
 
 ## 📝 Licença
 
-Este projeto é de código aberto e disponível para fins educacionais.
+Este projeto está licenciado sob a **GNU General Public License v3.0 (GPL-3.0)**.
+
+Você é livre para usar, modificar e distribuir este software, desde que:
+- Mantenha a mesma licença GPL-3.0 em trabalhos derivados
+- Disponibilize o código-fonte de qualquer modificação
+- Documente as alterações realizadas
+
+Veja o arquivo [LICENSE](LICENSE) para detalhes completos.
 
 ---
 
